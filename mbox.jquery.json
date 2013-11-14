@@ -1,0 +1,38 @@
+{
+"name": "mbox",
+"title": "mBox fullscreen lightbox plugin",
+"description": "mBox is a true full-screen light box(modal box) solution. Full Screen feature is supported by most of the popular browsers today like Chrome, Firefox, Safari. But it is not supported by older versions of opera and Internet Explorer. So we apply fullscreen mode in supported browsers and use the full browser area to simulate full screen in non-supported browsers.",
+"keywords": [
+"fullscreen",
+"screen",
+"lightbox",
+"image",
+"viewer",
+"full"
+],
+"version": "1.0",
+"author": {
+"name": "Satish Kumar Sharma",
+"url": "http://phploaded.com/people/profile/satish-kumar-sharma.html"
+},
+"maintainers": [
+{
+"name": "Satish Kumar Sharma",
+"email": "satish@phploaded.com",
+"url": "http://phploaded.com/people/profile/satish-kumar-sharma.html"
+}
+],
+"licenses": [
+{
+"type": "GPLv2",
+"url": "https://github.com/phploaded/mbox/blob/master/LICENSE.txt"
+}
+],
+"bugs": "https://github.com/phploaded/mbox/issues",
+"homepage": "https://github.com/phploaded/mbox/",
+"docs": "https://github.com/phploaded/mbox/",
+"download": "https://github.com/phploaded/mbox/archive/master.zip",
+"dependencies": {
+"jquery": ">=1.10.2"
+}
+}
