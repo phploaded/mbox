@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>mBox Developer Documentation</title>
+<link rel="stylesheet" href="mbox/mbox.css" />
+<link rel="stylesheet" href="demo.css" />
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="mbox/mbox.min.js"></script>
+<script src="demo.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/a11y-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js"></script>
+</head>
+<body>
+
+
+<div class="body-ctr">
+<div class="ctr">
+    <h1>Demo & Documentation for mBox jQuery plugin</h1>
+<p>mBox is a jQuery-based lightbox plugin designed for displaying images in a sleek and interactive way. It supports features like fullscreen mode, slideshow, rotation, keyboard navigation, and customizable options for title and description display.</p>
+
+<h2>1. Basic live demo</h2>
+<p>Click any of the images below to see the mBox in action. This is the most basic setup with minimal html markup and js code. Demo will launch in fullscreen by default.</p>
+
+<div class="tab-container">
+    <ul class="tab-buttons">
+      <li class="tab-btn active" data-target="demo">Demo</li>
+      <li class="tab-btn" data-target="html">HTML</li>
+      <li class="tab-btn" data-target="js">Javascript</li>
+    </ul>
+<div class="tab-content">
+
+<div data-id="demo" class="tab-pane active">
+<div id="example-1">
+<div class="demo-pic"><a href="https://phploaded.com/github/full/676ee6a0cec1d.jpg"><img src="https://phploaded.com/github/thumb/676ee6a0cec1d.jpg"></a></div>
+<div class="demo-pic"><a href="https://phploaded.com/github/full/676ee64c1b4f2.jpg"><img src="https://phploaded.com/github/thumb/676ee64c1b4f2.jpg"></a></div>
+<div class="demo-pic"><a href="https://phploaded.com/github/full/676ee64e57cbf.jpg"><img src="https://phploaded.com/github/thumb/676ee64e57cbf.jpg"></a></div>
+<div class="demo-pic"><a href="https://phploaded.com/github/full/676ee648cb025.jpg"><img src="https://phploaded.com/github/thumb/676ee648cb025.jpg"></a></div>
+<div class="demo-pic"><a href="https://phploaded.com/github/full/676ee64715d9d.jpg"><img src="https://phploaded.com/github/thumb/676ee64715d9d.jpg"></a></div>
+<div class="demo-pic"><a href="https://phploaded.com/github/full/676ee64524514.jpg"><img src="https://phploaded.com/github/thumb/676ee64524514.jpg"></a></div>
+</div>
+</div>
+
+<div data-id="html" class="tab-pane">
+<pre><code class="language-html"><p>&lt;div id=&quot;example-1&quot;&gt;<br />
+&lt;div class=&quot;demo-pic&quot;&gt;&lt;a href=&quot;full/pic1.jpg&quot;&gt;&lt;img src=&quot;thumb/pic1.jpg&quot;&gt;&lt;/a&gt;&lt;/div&gt;<br />
+&lt;div class=&quot;demo-pic&quot;&gt;&lt;a href=&quot;full/pic2.jpg&quot;&gt;&lt;img src=&quot;thumb/pic2.jpg&quot;&gt;&lt;/a&gt;&lt;/div&gt;<br />
+<br />
+&lt;!-- --- --- more pics here --- --- --&gt;<br />
+<br />
+&lt;/div&gt;</p></code></pre>
+</div>
+
+<div data-id="js" class="tab-pane">
+<pre><code class="language-js"><p>$(document).ready(function(){<br />
+ $(&#39;#example-1 .demo-pic&#39;).mBox(); // just like any other plugin you would use<br />
+});</p></code></pre>
+</div>
+
+</div>
+</div>
+
+
+
+<h2>2. Advanced live demo</h2>
+<p>Code is similar to last demo. We have added <b>title</b> and some html <b>info</b> with each pic. Looks at js how we have specified the <b>getTitle</b> and <b>getInfo</b> properties to tell the plugin what to use as title and description. When you hover, click or tap(touch devices), you can see description as well. Also note that this demo wont launch in fullscreen by default.</p>
+
+<div class="tab-container">
+    <ul class="tab-buttons">
+      <li class="tab-btn active" data-target="demo">Demo</li>
+      <li class="tab-btn" data-target="html">HTML</li>
+	  <li class="tab-btn" data-target="css">CSS</li>
+      <li class="tab-btn" data-target="js">Javascript</li>
+    </ul>
+<div class="tab-content">
+
+<div data-id="demo" class="tab-pane active">
+<div id="example-2">
+<div mbox-group="personal" class="demo-pic"><a href="https://phploaded.com/github/full/676e8b64bd9a9.jpg"><img src="https://phploaded.com/github/thumb/676e8b64bd9a9.jpg"></a><div class="demo-title">My old bike</div><div class="demo-description">The Hero Brand 2014 Model Yellow-Green Bike was not just a mode of transportation; it was a statement of individuality. Its vibrant yellow-green paint shone brightly, making it an instant head-turner on the roads. The ergonomic design ensured a smooth and comfortable ride, whether on busy city streets or serene countryside trails. Its lightweight frame and durable tires offered a perfect balance of speed and stability, making it ideal for both beginners and seasoned riders. With an adjustable seat and well-cushioned handle grips, it catered to all types of bikers. The bike’s gear system was intuitive, allowing seamless transitions even on rugged terrain. Its bell chimed cheerfully, announcing its arrival with a playful note. Reflective stickers on the body ensured visibility and safety during nighttime rides. For years, this bike had been a loyal companion, witnessing countless adventures. Every scratch and dent on its frame carried a story, making it more than just a bike—it was a cherished memory in motion.</div></div>
+<div mbox-group="personal" class="demo-pic"><a href="https://phploaded.com/github/full/676e8b68c4bd5.jpg"><img src="https://phploaded.com/github/thumb/676e8b68c4bd5.jpg"></a><div class="demo-title">Gooseberry Leaf</div><div class="demo-description">The gooseberry leaf, often overlooked, holds a quiet elegance in its delicate structure. Its slender shape and pointed tips give it a unique charm, setting it apart from other foliage. The leaf’s vibrant green color symbolizes freshness, vitality, and nature's resilience. Each vein branching through the leaf creates a beautiful pattern, as if nature itself had painted it with precision. These leaves are not only visually appealing but also have a mild, earthy fragrance that soothes the senses. In traditional medicine, gooseberry leaves are prized for their therapeutic properties, aiding in digestion and skin health. Their texture is smooth yet firm, reflecting their ability to thrive in varying climates. They sway gently in the wind, whispering secrets of ancient wisdom. When paired with the fruit they cradle, they complete a picture of nourishment and life. A single gooseberry leaf can inspire an artist's brush or a poet's pen, embodying simplicity and depth.</div></div>
+<div mbox-group="personal" class="demo-pic"><a href="https://phploaded.com/github/full/676e8b6686bce.jpg"><img src="https://phploaded.com/github/thumb/676e8b6686bce.jpg"></a><div class="demo-title">A Birthday Cake on Table</div><div class="demo-description">On the center of the table stood the most captivating birthday cake one could imagine, a delight for cricket lovers. Its base was a rich chocolate sponge, layered with smooth vanilla frosting that glistened under the party lights. The top of the cake was a miniature cricket field, complete with finely crafted stumps, a bat, and a ball made from sugar. Green fondant resembled the grassy outfield, while edible white frosting created the chalk boundary lines. In the middle of this edible stadium sat tiny players, their expressions and uniforms meticulously detailed. Around the cake’s edges, colorful sprinkles represented cheering fans, adding a festive touch. The craftsmanship was so lifelike that it felt as though a game was about to begin. Every slice revealed a swirl of delicious flavors, satisfying both the eyes and the palate. This cake was not just a dessert; it was a centerpiece, sparking joy and conversation among the party guests.</div></div>
+<div mbox-group="personal" class="demo-pic"><a href="https://phploaded.com/github/full/676e8b9918c16.jpg"><img src="https://phploaded.com/github/thumb/676e8b9918c16.jpg"></a><div class="demo-title">Pink Flowers</div><div class="demo-description">Nestled in a quiet corner of the garden, the pink flowers flourished in their vibrant beauty beside the sacred God Shankar stones. Their petals, soft as silk, radiated hues of blush and rose, exuding an air of serenity. These flowers seemed to bow gently towards the stones, as if paying homage to the divine energy they represented. The stones, weathered yet majestic, bore an aura of timeless spirituality, their surfaces adorned with traces of vermilion and sandalwood. Bees and butterflies flitted around the flowers, adding a lively rhythm to the tranquil scene. The fragrance of the blooms mingled with the earthy scent of the stones, creating a sacred and harmonious atmosphere. Each flower, though delicate, stood resilient, as though drawing strength from its divine neighbor. This setting invited quiet reflection, prayer, and a sense of connection to nature and spirituality. Together, the flowers and stones painted a picture of beauty, devotion, and peace, a perfect sanctuary for the soul.</div></div>
+</div>
+</div>
+
+<div data-id="html" class="tab-pane">
+<pre><code class="language-html"><p>&lt;div id=&quot;example-2&quot;&gt;<br />
+<br />
+&lt;!-- --- --- example pic --- --- --&gt;<br />
+<br />
+&lt;div mbox-group=&quot;personal&quot; class=&quot;demo-pic&quot;&gt;<br />
+&lt;a href=&quot;full/pic.jpg&quot;&gt;&lt;img src=&quot;thumb/pic.jpg&quot;&gt;&lt;/a&gt;<br />
+&lt;div class=&quot;demo-title&quot;&gt;title here&lt;/div&gt;<br />
+&lt;div class=&quot;demo-description&quot;&gt;description here&lt;/div&gt;<br />
+&lt;/div&gt;<br />
+<br />
+&lt;!-- --- --- more pics here --- --- --&gt;<br />
+<br />
+&lt;/div&gt;</p></code></pre>
+</div>
+
+<div data-id="css" class="tab-pane">
+<pre><code class="language-css"><p>.demo-title, .demo-description{<br />
+&nbsp;&nbsp;&nbsp; display:none;<br />
+}</p></code></pre>
+</div>
+
+<div data-id="js" class="tab-pane">
+<pre><code class="language-js"><p>$(&#39;#example-2 .demo-pic&#39;).mBox({<br />
+&nbsp;&nbsp;&nbsp; fullScreen: false, // launch in lightbox mode<br />
+&nbsp;&nbsp;&nbsp; getTitle:&#39;.demo-title&#39;, // fetch title from internal html<br />
+&nbsp;&nbsp;&nbsp; getInfo:&#39;.demo-description&#39;, // fetch info from internal html<br />
+&nbsp;&nbsp;&nbsp; slideTime: 7000 // slide display time during slideshow<br />
+});</p></code></pre>
+</div>
+
+</div>
+</div>
+
+<p>Defining <b>mbox-group</b> is a good idea to group images into a single gallery. If you dont define it, it defines it as a group named <b>ungrouped</b>. </p>
+
+
+<h2>3. Installation</h2>
+<p>Include the following files in your project:</p>
+<pre><code class="language-html"><p>&lt;link rel=&quot;stylesheet&quot; href=&quot;mbox/mbox.css&quot;&gt;<br />
+&lt;script src=&quot;https://code.jquery.com/jquery-3.7.1.min.js&quot;&gt;&lt;/script&gt;<br />
+&lt;script src=&quot;mbox/mbox.js&quot;&gt;&lt;/script&gt;</p></code></pre>
+
+
+<h2>4. Configuration Options</h2>
+<table style="width:100%;" class="tbl">
+	<thead>
+		<tr>
+			<th>Option</th>
+			<th>Default</th>
+			<th>Description</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><code>getTitle</code></td>
+			<td><code>.title</code></td>
+			<td>Selector to fetch the title element.</td>
+		</tr>
+		<tr>
+			<td><code>getInfo</code></td>
+			<td><code>.info</code></td>
+			<td>Selector to fetch the info element.</td>
+		</tr>
+		<tr>
+			<td><code>getPic</code></td>
+			<td><code>a:first</code></td>
+			<td>Selector to fetch the image source.</td>
+		</tr>
+		<tr>
+			<td><code>fullScreen</code></td>
+			<td><code>true</code></td>
+			<td>Whether to allow fullscreen mode.</td>
+		</tr>
+		<tr>
+			<td><code>slideTime</code></td>
+			<td><code>5000</code></td>
+			<td>Time in milliseconds for each slide in slideshow mode.</td>
+		</tr>
+		<tr>
+			<td><code>onOpen</code></td>
+			<td><code>null</code></td>
+			<td>Callback function executed when the lightbox opens.</td>
+		</tr>
+		<tr>
+			<td><code>onClose</code></td>
+			<td><code>null</code></td>
+			<td>Callback function executed when the lightbox closes.</td>
+		</tr>
+		<tr>
+			<td><code>onNext</code></td>
+			<td><code>null</code></td>
+			<td>Callback function executed when navigating to the next item.</td>
+		</tr>
+		<tr>
+			<td><code>onPrev</code></td>
+			<td><code>null</code></td>
+			<td>Callback function executed when navigating to the previous item.</td>
+		</tr>
+	</tbody>
+</table>
+
+
+
+<p>You have reached the end of mBox documentation page. If you have more questions you can reach me via <a target="_blank" href="https://phploaded.com/contact/">phploaded's contact page</a>. No gurantees but i will try to look into it as soon as possible.</p>
+
+	
+<div class="text-center">A product of <a href="http://phploaded.com">phploaded.com</a></div>
+</div>
+</div>
+</div>
+</body>
+</html>
