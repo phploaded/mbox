@@ -1,4 +1,4 @@
-# mBox jQuery Lightbox Plugin - Developer Documentation
+# mBox Fullscreen Lightbox jQuery Plugin - Developer Documentation
 
 ## Overview
 **mBox** is a jQuery-based lightbox plugin designed for displaying images in a sleek and interactive way. It supports features like fullscreen mode, slideshow, rotation, keyboard navigation, and customizable options for title and description display.
