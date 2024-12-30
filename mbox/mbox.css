@@ -1,3 +1,5 @@
+/* v1.2 by phploaded */
+
 /* Base ctr styling */
 .mbox-ctr {
 position: fixed;
@@ -94,6 +96,10 @@ object-fit: contain;
 display: block;
 border: 0;
 transition:all 0.5s;
+}
+
+.mbox-zoomfit .mbox-main-img {
+animation: mbox-cfit 3s ease-in-out infinite alternate;
 }
 
 /* Footer section */
@@ -289,6 +295,15 @@ align-items: center;
 @keyframes mbox-loader {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@keyframes mbox-cfit {
+  from {
+    object-position: top left;
+  }
+  to {
+    object-position: bottom right;
+  }
 }
 
 

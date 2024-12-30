@@ -1,5 +1,4 @@
-/* minified v1.1 */
-
+/* v1.2 by phploaded */
 (function ($) {
   const defaults = {
     getTitle: '.title',
@@ -123,7 +122,7 @@
     $prevButton.on('click', () => navigateLightbox(-1, currentIndex, groupInstances, settings));
     $nextButton.on('click', () => navigateLightbox(1, currentIndex, groupInstances, settings));
     $('.mbox-screenfit').on('click', () => mBox_fitscreen());
-    $('.mbox-rotate').on('click', () => mBox_rotate());
+    $('.mbox-rotate').on('click', () => mBox_rotate(settings.slideTime));
     $('.mbox-fullscreen').on('click', () => mBox_fullScreen());
     $('.mbox-play').on('click', () => mBox_slideShow());
     $('.mbox-descr').on('mouseenter', () => $('.mbox-info').slideDown('fast'));
@@ -269,7 +268,7 @@ function mBox_fullScreen() {
 }
 
 
-function mBox_rotate(){
+function mBox_rotate(xtime){
 const $e = $('.mbox-main-img');
 let rotation = parseInt($e.attr('mbox-deg'));
 
@@ -280,9 +279,10 @@ rotation = 0;
 rotation = rotation + 90;
 if(rotation==360){rotation=0;}
 
+
 if(rotation==90 || rotation==270){
 const h = $(window).height();
-const w = $(window).height();
+const w = $(window).width();
 $e.css({'transform':'rotate('+rotation+'deg)', 'width':h+'px', 'height':w+'px'});
 } else {
 $e.css({'transform':'rotate('+rotation+'deg)', 'width':'', 'height':''});
@@ -327,8 +327,9 @@ function updateLightboxContent($el, currentIndex, totalCount, settings) {
 
   // Update content for the current image
   const xsrc = $el.find(settings.getPic + ' img:first').attr('src');
+  const s = settings.slideTime/1000;
   $content.html(`
-    <img src="${xsrc}" class="mbox-main-img" />
+    <img src="${xsrc}" style="animation-duration:${s}s" class="mbox-main-img" />
     <div class="mbox-loading"></div>
   `);
 
@@ -363,6 +364,10 @@ function updateLightboxContent($el, currentIndex, totalCount, settings) {
     // Handle current preloaded image
   $('.mbox-preload-current').on('load', function () {
     const xsrc = $(this).attr('src');
+    const actualWidth = $(this)[0].naturalWidth;
+    const actualHeight = $(this)[0].naturalHeight;
+	$('.mbox-main-img').attr('mbox-h', actualHeight);
+	$('.mbox-main-img').attr('mbox-w', actualWidth);
     $('.mbox-main-img').attr('src', xsrc);
     $('.mbox-loading').remove();
 	$(this).remove();
