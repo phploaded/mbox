@@ -3,7 +3,7 @@
 ## Live Demo and Example code here http://phploaded.github.io/mbox/
 
 ## Overview
-**mBox** is a jQuery-based lightbox plugin designed for displaying images in a sleek and interactive way. It supports features like fullscreen mode, slideshow, rotation, keyboard navigation, and customizable options for title and description display.
+**mBox** is a jQuery-based lightbox plugin designed for displaying images in a sleek and interactive way. It supports features like fullscreen mode, slideshow, rotation, keyboard navigation, touch swipe navigation, and customizable options for title and description display.
 
 ---
 
@@ -44,6 +44,9 @@ You can customize mBox by passing an options object when initializing the plugin
 | `getPic`       | `a:first`    | Selector to fetch the image source.                                        |
 | `fullScreen`   | `true`       | Whether to allow fullscreen mode.                                          |
 | `slideTime`    | `5000`       | Time in milliseconds for each slide in slideshow mode.                     |
+| `swipeThreshold` | `70`       | Minimum horizontal swipe distance in pixels required to navigate.          |
+| `swipeMaxVertical` | `120`    | Maximum vertical drift allowed while a horizontal swipe is recognized.     |
+| `transitionDuration` | `280`  | Slide animation time in milliseconds for next/prev navigation.            |
 | `onOpen`       | `null`       | Callback function executed when the lightbox opens.                        |
 | `onClose`      | `null`       | Callback function executed when the lightbox closes.                       |
 | `onNext`       | `null`       | Callback function executed when navigating to the next item.               |
@@ -84,6 +87,9 @@ Rotates the image in 90-degree increments when the `rotate` button is clicked or
 | `Escape`    | Close lightbox       |
 | `R`         | Rotate image         |
 | `C`         | Toggle fullscreen    |
+
+### 5. Touch Swipe Navigation
+On touch devices, swipe left to move to the next image and swipe right to move to the previous image. The transition uses the same animated slide movement as the next/prev controls, so mobile navigation feels consistent with button and keyboard navigation.
 
 ---
 
@@ -129,7 +135,7 @@ Initializes and displays the lightbox for the selected element.
 Closes the currently active lightbox.
 
 ### `navigateLightbox(direction, _, groupInstances, settings)`
-Navigates to the next or previous item in the lightbox group.
+Navigates to the next or previous item in the lightbox group, including the animated slide transition used by button, keyboard, and touch navigation.
 
 ### `updateLightboxContent($el, currentIndex, totalCount, settings)`
 Updates the lightbox content based on the selected element.
