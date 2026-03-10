@@ -73,7 +73,7 @@
     const $ctr = $('<div class="mbox-ctr"></div>');
     const $bg = $('<div class="mbox-bg"></div>');
     const $lightbox = $('<div class="mbox-lightbox"></div>').data('currentEl', $el);
-    const $content = $('<div class="mbox-content"><div class="mbox-stage"></div></div>');
+    const $content = $('<div class="mbox-content"><div class="mbox-stage"></div><div class="mbox-zoom-indicator" aria-live="polite">100%</div></div>');
     const $controls = $('<div class="mbox-controls"></div>');
 
     const group = $el.attr('mbox-group');
@@ -118,6 +118,7 @@
       gesture: null,
       tapTracker: null,
       zoom: createZoomState(),
+      zoomIndicatorTimer: null,
     });
 
     $lightbox[0].style.setProperty('--mbox-transition-duration', `${settings.transitionDuration}ms`);
@@ -198,6 +199,12 @@
   function closeLightbox($ctr, settings) {
     clearSlideShow();
     $(document).off('keydown.mbox');
+    const state = getLightboxState();
+    if (state && state.zoomIndicatorTimer) {
+      clearTimeout(state.zoomIndicatorTimer);
+      state.zoomIndicatorTimer = null;
+    }
+    $('body').removeClass('mbox-zoomfit');
     $ctr.remove();
     $('.mbox-main-body').removeClass('mbox-blur');
     if (settings.onClose) {
@@ -209,24 +216,54 @@
     const $playButton = $('.mbox-play');
     const $progressOut = $('.mbox-progress-out');
     const $progressBar = $('.mbox-progress');
+    const $lightbox = $('.mbox-lightbox');
+    const state = getLightboxState();
 
     $playButton.removeClass('mbox-pause');
     $progressOut.hide();
     $progressBar.css('width', '0%');
+    $lightbox.removeClass('mbox-slideshow-active');
+    $lightbox.find('.mbox-main-img').removeClass('mbox-fit-scanning');
+    if ($lightbox.length && !$lightbox.hasClass('mbox-zoomfit')) {
+      $lightbox[0].style.removeProperty('--mbox-slideshow-duration');
+    }
     clearTimeout(slideshowTimeout);
     clearTimeout(progressTimeout);
     slideshowTimeout = null;
     progressTimeout = null;
+
+    if ($lightbox.length && state && $lightbox.hasClass('mbox-zoomfit')) {
+      syncCurrentFitScan($lightbox, state.settings.slideTime || defaults.slideTime);
+    }
   }
 
   function mBox_fitscreen() {
-    $('body').toggleClass('mbox-zoomfit');
+    const $lightbox = $('.mbox-lightbox');
+    const state = getLightboxState();
+    const $image = $lightbox.find('.mbox-slide.is-current .mbox-main-img').first();
+    if (!$lightbox.length) {
+      return;
+    }
+
+    $('body').removeClass('mbox-zoomfit');
+    $lightbox.toggleClass('mbox-zoomfit');
+
+    if ($image.length) {
+      applyImageRotation($image, parseInt($image.attr('mbox-deg'), 10) || 0, $lightbox);
+    }
+
+    if (state) {
+      resetZoomState(state, true);
+      clampZoomState($lightbox, state);
+      applyActiveZoomTransform($lightbox, state, false);
+      syncCurrentFitScan($lightbox, state.settings.slideTime || defaults.slideTime);
+    }
   }
 
   function mBox_slideShow() {
     const $playButton = $('.mbox-play');
     const $progressOut = $('.mbox-progress-out');
-    const $progressBar = $('.mbox-progress');
+    const $lightbox = $('.mbox-lightbox');
     const state = getLightboxState();
     const settings = state ? state.settings : $.extend({}, defaults);
 
@@ -237,40 +274,90 @@
 
     $playButton.addClass('mbox-pause');
     $progressOut.show();
+    $lightbox.addClass('mbox-slideshow-active');
+    runSlideShowCycle(settings.slideTime || defaults.slideTime);
+  }
 
-    const slideTime = settings.slideTime || defaults.slideTime;
-    let elapsed = 0;
+  function runSlideShowCycle(slideTime) {
+    const $playButton = $('.mbox-play');
+    const $progressBar = $('.mbox-progress');
+    const $lightbox = $('.mbox-lightbox');
+    const startedAt = Date.now();
+
+    if (!$playButton.hasClass('mbox-pause') || !$lightbox.length) {
+      return;
+    }
+
+    clearTimeout(slideshowTimeout);
+    clearTimeout(progressTimeout);
+    slideshowTimeout = null;
+    progressTimeout = null;
+    $progressBar.css('width', '0%');
+    syncCurrentFitScan($lightbox, slideTime);
 
     function updateProgress() {
-      elapsed += 1000;
+      if (!$playButton.hasClass('mbox-pause')) {
+        return;
+      }
+
+      const elapsed = Date.now() - startedAt;
       const progress = Math.min((elapsed / slideTime) * 100, 100);
       $progressBar.css('width', `${progress}%`);
 
-      if (elapsed < slideTime && $playButton.hasClass('mbox-pause')) {
-        progressTimeout = setTimeout(updateProgress, 1000);
+      if (elapsed < slideTime) {
+        progressTimeout = setTimeout(updateProgress, 100);
       }
     }
 
-    function simulateNextClick() {
-      const $nextButton = $('.mbox-next:visible');
+    function advanceSlide() {
       const currentState = getLightboxState();
+      const $nextButton = $('.mbox-next:visible');
 
-      if ($playButton.hasClass('mbox-pause') && currentState && !currentState.isTransitioning) {
-        if ($nextButton.length > 0) {
-          elapsed = 0;
-          $nextButton.trigger('click');
-          updateProgress();
-          slideshowTimeout = setTimeout(simulateNextClick, slideTime);
-        } else {
-          clearSlideShow();
-        }
-      } else if ($playButton.hasClass('mbox-pause')) {
-        slideshowTimeout = setTimeout(simulateNextClick, 300);
+      if (!$playButton.hasClass('mbox-pause') || !currentState) {
+        return;
       }
+
+      if (currentState.isTransitioning) {
+        slideshowTimeout = setTimeout(advanceSlide, 80);
+        return;
+      }
+
+      if (!$nextButton.length) {
+        clearSlideShow();
+        return;
+      }
+
+      $nextButton.trigger('click');
+      slideshowTimeout = setTimeout(() => {
+        if ($playButton.hasClass('mbox-pause')) {
+          runSlideShowCycle(slideTime);
+        }
+      }, (currentState.settings.transitionDuration || defaults.transitionDuration) + 60);
     }
 
     updateProgress();
-    slideshowTimeout = setTimeout(simulateNextClick, slideTime);
+    slideshowTimeout = setTimeout(advanceSlide, slideTime);
+  }
+
+  function syncCurrentFitScan($lightbox, slideTime) {
+    if (!$lightbox.length) {
+      return;
+    }
+
+    $lightbox.find('.mbox-main-img').removeClass('mbox-fit-scanning');
+    $lightbox[0].style.setProperty('--mbox-slideshow-duration', `${slideTime}ms`);
+
+    if (!$lightbox.hasClass('mbox-zoomfit')) {
+      return;
+    }
+
+    const $img = $lightbox.find('.mbox-slide.is-current .mbox-main-img').first();
+    if (!$img.length) {
+      return;
+    }
+
+    $img[0].offsetWidth;
+    $img.addClass('mbox-fit-scanning');
   }
 
   function mBox_fullScreen() {
@@ -297,6 +384,7 @@
 
   function mBox_rotate() {
     const $image = $('.mbox-slide.is-current .mbox-main-img').first();
+    const $lightbox = $('.mbox-lightbox');
     const state = getLightboxState();
     let rotation = parseInt($image.attr('mbox-deg'), 10);
 
@@ -310,12 +398,14 @@
     }
 
     if ($image.length) {
-      applyImageRotation($image, rotation);
+      $lightbox.removeClass('mbox-zoomfit');
+      applyImageRotation($image, rotation, $lightbox);
     }
 
     if (state) {
-      clampZoomState($('.mbox-lightbox'), state);
-      applyActiveZoomTransform($('.mbox-lightbox'), state);
+      resetZoomState(state, true);
+      clampZoomState($lightbox, state);
+      applyActiveZoomTransform($lightbox, state, false);
     }
   }
 
@@ -693,7 +783,7 @@
     zoom.x = gesture.originX + (clientX - gesture.startX);
     zoom.y = gesture.originY + (clientY - gesture.startY);
     clampZoomState($lightbox, state);
-    applyActiveZoomTransform($lightbox, state);
+    applyActiveZoomTransform($lightbox, state, false);
     return true;
   }
 
@@ -702,7 +792,7 @@
     zoom.panning = false;
     if (isCancel) {
       clampZoomState($lightbox, state);
-      applyActiveZoomTransform($lightbox, state);
+      applyActiveZoomTransform($lightbox, state, false);
     }
     updateGestureClasses($lightbox, state);
     return zoom.scale > 1.01;
@@ -757,7 +847,7 @@
     zoom.y = gesture.originY * zoomRatio + (center.y - gesture.initialCenter.y);
 
     clampZoomState($lightbox, state);
-    applyActiveZoomTransform($lightbox, state);
+    applyActiveZoomTransform($lightbox, state, true);
     return true;
   }
 
@@ -767,7 +857,7 @@
       resetZoomState(state, true);
     }
     clampZoomState($lightbox, state);
-    applyActiveZoomTransform($lightbox, state);
+    applyActiveZoomTransform($lightbox, state, true);
     updateGestureClasses($lightbox, state);
     return true;
   }
@@ -836,7 +926,7 @@
     }
 
     clampZoomState($lightbox, state);
-    applyActiveZoomTransform($lightbox, state);
+    applyActiveZoomTransform($lightbox, state, true);
   }
 
   function resolveSwipeDirection(state, deltaX, deltaY) {
@@ -892,7 +982,7 @@
     zoom.y = clamp(zoom.y, -limitY, limitY);
   }
 
-  function applyActiveZoomTransform($lightbox, state) {
+  function applyActiveZoomTransform($lightbox, state, showIndicator) {
     const zoom = ensureZoomState(state);
     $lightbox.find('.mbox-slide').each(function () {
       const $slide = $(this);
@@ -913,6 +1003,28 @@
     });
 
     updateGestureClasses($lightbox, state);
+    if (showIndicator === true) {
+      showZoomIndicator($lightbox, state);
+    }
+  }
+
+  function showZoomIndicator($lightbox, state) {
+    const $indicator = $lightbox.find('.mbox-zoom-indicator');
+    if (!$indicator.length) {
+      return;
+    }
+
+    const percent = `${Math.round(ensureZoomState(state).scale * 100)}%`;
+    $indicator.text(percent).addClass('is-visible');
+
+    if (state.zoomIndicatorTimer) {
+      clearTimeout(state.zoomIndicatorTimer);
+    }
+
+    state.zoomIndicatorTimer = setTimeout(() => {
+      $indicator.removeClass('is-visible');
+      state.zoomIndicatorTimer = null;
+    }, 850);
   }
 
   function updateGestureClasses($lightbox, state) {
@@ -1074,7 +1186,8 @@
 
     state.stageWindow = windowItems;
     applyRestStageLayout($lightbox, state);
-    applyActiveZoomTransform($lightbox, state);
+    applyActiveZoomTransform($lightbox, state, false);
+    syncCurrentFitScan($lightbox, state.settings.slideTime || defaults.slideTime);
   }
 
   function applyRestStageLayout($lightbox, state) {
@@ -1124,16 +1237,43 @@
     setSlidePose($nextSlide, restOffset + (deltaX * 0.12), sideScale - (progress * 0.02), Math.max(0.1, 1 - (progress * 0.7)), 1, width);
   }
 
-  function applyImageRotation($image, rotation) {
-    $image.attr('mbox-deg', rotation);
-    if (rotation === 90 || rotation === 270) {
-      const height = $(window).height();
-      const width = $(window).width();
-      $image.css({ transform: `rotate(${rotation}deg)`, width: `${height}px`, height: `${width}px` });
+  function applyImageRotation($image, rotation, $lightbox) {
+    const $resolvedLightbox = $lightbox && $lightbox.length ? $lightbox : $('.mbox-lightbox');
+    const container = $resolvedLightbox.find('.mbox-content')[0];
+    const containerWidth = container ? container.clientWidth || $(window).width() : $(window).width();
+    const containerHeight = container ? container.clientHeight || $(window).height() : $(window).height();
+    const naturalWidth = parseFloat($image.attr('mbox-w')) || $image[0].naturalWidth || $image[0].width || 1;
+    const naturalHeight = parseFloat($image.attr('mbox-h')) || $image[0].naturalHeight || $image[0].height || 1;
+    const normalizedRotation = ((rotation % 360) + 360) % 360;
+    const isQuarterTurn = normalizedRotation === 90 || normalizedRotation === 270;
+    const fitMode = $resolvedLightbox.hasClass('mbox-zoomfit') && $image.closest('.mbox-slide').hasClass('is-current');
+
+    if (fitMode) {
+      $image.attr('mbox-deg', normalizedRotation);
+      $image.css({
+        transform: `rotate(${normalizedRotation}deg)`,
+        width: '100%',
+        height: '100%',
+        maxWidth: 'none',
+        maxHeight: 'none',
+      });
       return;
     }
 
-    $image.css({ transform: `rotate(${rotation}deg)`, width: '', height: '' });
+    const scale = isQuarterTurn
+      ? Math.min(containerWidth / naturalHeight, containerHeight / naturalWidth)
+      : Math.min(containerWidth / naturalWidth, containerHeight / naturalHeight);
+    const fittedWidth = Math.max(1, Math.round(naturalWidth * scale));
+    const fittedHeight = Math.max(1, Math.round(naturalHeight * scale));
+
+    $image.attr('mbox-deg', normalizedRotation);
+    $image.css({
+      transform: `rotate(${normalizedRotation}deg)`,
+      width: `${fittedWidth}px`,
+      height: `${fittedHeight}px`,
+      maxWidth: 'none',
+      maxHeight: 'none',
+    });
   }
 
   function animateDirectionalNavigation($lightbox, state, targetIndex, direction, $targetEl, resolvedSettings) {
@@ -1239,6 +1379,7 @@
     const previewSrc = getPreviewSrc($el, settings);
     const fullSrc = getFullSrc($el, settings) || previewSrc;
     const isCurrent = options && options.isCurrent === true;
+    const hasDistinctPreview = Boolean(previewSrc) && previewSrc !== fullSrc;
     const $slide = $('<div class="mbox-slide"></div>');
     const $media = $('<div class="mbox-slide-media"></div>');
     const $img = $('<img class="mbox-main-img" alt="" />');
@@ -1247,6 +1388,7 @@
     $slide.attr('data-mbox-index', options && typeof options.index === 'number' ? options.index : '');
     $slide.toggleClass('has-preview', Boolean(previewSrc));
     $slide.toggleClass('is-current', isCurrent);
+    $slide.toggleClass('is-preview-active', hasDistinctPreview);
     $slide.data('mboxFullSrc', fullSrc);
 
     if (previewSrc || fullSrc) {
@@ -1265,6 +1407,7 @@
 
   function hydrateImageSlide($slide, src, options) {
     if (!src) {
+      $slide.removeClass('is-preview-active');
       $slide.find('.mbox-loading').remove();
       return;
     }
@@ -1279,6 +1422,7 @@
     }
 
     if (!record) {
+      $slide.removeClass('is-preview-active');
       $loader.remove();
       return;
     }
@@ -1366,6 +1510,7 @@
       'mbox-deg': rotation,
     });
     applyImageRotation($img, rotation);
+    $slide.removeClass('is-preview-active');
     $slide.find('.mbox-loading').remove();
     $slide.addClass('is-full-ready');
   }
