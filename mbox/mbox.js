@@ -119,6 +119,8 @@
       tapTracker: null,
       zoom: createZoomState(),
       zoomIndicatorTimer: null,
+      fitScanFrameId: null,
+      fitScanTarget: null,
     });
 
     $lightbox[0].style.setProperty('--mbox-transition-duration', `${settings.transitionDuration}ms`);
@@ -204,6 +206,7 @@
       clearTimeout(state.zoomIndicatorTimer);
       state.zoomIndicatorTimer = null;
     }
+    stopFitScan($('.mbox-lightbox'), true);
     $('body').removeClass('mbox-zoomfit');
     $ctr.remove();
     $('.mbox-main-body').removeClass('mbox-blur');
@@ -344,7 +347,7 @@
       return;
     }
 
-    $lightbox.find('.mbox-main-img').removeClass('mbox-fit-scanning');
+    stopFitScan($lightbox, false);
     $lightbox[0].style.setProperty('--mbox-slideshow-duration', `${slideTime}ms`);
 
     if (!$lightbox.hasClass('mbox-zoomfit')) {
@@ -356,8 +359,109 @@
       return;
     }
 
-    $img[0].offsetWidth;
     $img.addClass('mbox-fit-scanning');
+    startFitScan($lightbox, $img, Math.max(400, Number(slideTime) || defaults.slideTime), $lightbox.hasClass('mbox-slideshow-active'));
+  }
+
+  function stopFitScan($lightbox, resetPosition) {
+    const $resolvedLightbox = $lightbox && $lightbox.length ? $lightbox : $('.mbox-lightbox');
+    if (!$resolvedLightbox.length) {
+      return;
+    }
+
+    const state = $resolvedLightbox.data('mboxState') || null;
+    if (state && state.fitScanFrameId) {
+      cancelAnimationFrame(state.fitScanFrameId);
+      state.fitScanFrameId = null;
+    }
+    if (state) {
+      state.fitScanTarget = null;
+    }
+
+    const $images = $resolvedLightbox.find('.mbox-main-img');
+    $images.removeClass('mbox-fit-scanning');
+    if (resetPosition === true) {
+      $images.css('object-position', '50% 50%');
+    }
+  }
+
+  function startFitScan($lightbox, $img, duration, singleCycle) {
+    const state = $lightbox.data('mboxState') || null;
+    const imageEl = $img && $img[0];
+    if (!state || !imageEl) {
+      return;
+    }
+
+    const startedAt = performance.now();
+    state.fitScanTarget = imageEl;
+    imageEl.style.objectPosition = fitScanObjectPosition($lightbox, $img, 0);
+
+    const step = (now) => {
+      if (!$lightbox.length || !$lightbox.hasClass('mbox-zoomfit')) {
+        state.fitScanFrameId = null;
+        return;
+      }
+      if (!document.body.contains(imageEl) || state.fitScanTarget !== imageEl) {
+        state.fitScanFrameId = null;
+        return;
+      }
+
+      const elapsed = Math.max(0, now - startedAt);
+      const rawProgress = singleCycle
+        ? Math.min(elapsed / duration, 1)
+        : ((elapsed % duration) / duration);
+      const axisProgress = rawProgress <= 0.5
+        ? (rawProgress * 2)
+        : ((1 - rawProgress) * 2);
+
+      imageEl.style.objectPosition = fitScanObjectPosition($lightbox, $img, axisProgress);
+
+      if (singleCycle && elapsed >= duration) {
+        state.fitScanFrameId = null;
+        return;
+      }
+
+      state.fitScanFrameId = requestAnimationFrame(step);
+    };
+
+    state.fitScanFrameId = requestAnimationFrame(step);
+  }
+
+  function fitScanObjectPosition($lightbox, $img, axisProgress) {
+    const $resolvedLightbox = $lightbox && $lightbox.length ? $lightbox : $('.mbox-lightbox');
+    const imageEl = $img && $img[0];
+    if (!$resolvedLightbox.length || !imageEl) {
+      return '50% 50%';
+    }
+
+    const contentEl = $resolvedLightbox.find('.mbox-content')[0];
+    const containerWidth = contentEl ? contentEl.clientWidth || $(window).width() : $(window).width();
+    const containerHeight = contentEl ? contentEl.clientHeight || $(window).height() : $(window).height();
+    let naturalWidth = parseFloat($img.attr('mbox-w')) || imageEl.naturalWidth || imageEl.width || 1;
+    let naturalHeight = parseFloat($img.attr('mbox-h')) || imageEl.naturalHeight || imageEl.height || 1;
+    const rotation = (parseInt($img.attr('mbox-deg'), 10) || 0) % 360;
+    const normalizedRotation = (rotation + 360) % 360;
+
+    if (normalizedRotation === 90 || normalizedRotation === 270) {
+      const swap = naturalWidth;
+      naturalWidth = naturalHeight;
+      naturalHeight = swap;
+    }
+
+    const coverScale = Math.max(containerWidth / Math.max(1, naturalWidth), containerHeight / Math.max(1, naturalHeight));
+    const scaledWidth = naturalWidth * coverScale;
+    const scaledHeight = naturalHeight * coverScale;
+    const overflowX = Math.max(0, scaledWidth - containerWidth);
+    const overflowY = Math.max(0, scaledHeight - containerHeight);
+    const percent = Math.max(0, Math.min(100, axisProgress * 100));
+
+    if (overflowY >= overflowX && overflowY > 1) {
+      return `50% ${percent}%`;
+    }
+    if (overflowX > 1) {
+      return `${percent}% 50%`;
+    }
+    return '50% 50%';
   }
 
   function mBox_fullScreen() {
@@ -1256,6 +1360,20 @@
         height: '100%',
         maxWidth: 'none',
         maxHeight: 'none',
+        objectFit: 'contain',
+      });
+      return;
+    }
+
+    if (!isQuarterTurn) {
+      $image.attr('mbox-deg', normalizedRotation);
+      $image.css({
+        transform: `rotate(${normalizedRotation}deg)`,
+        width: '100%',
+        height: '100%',
+        maxWidth: 'none',
+        maxHeight: 'none',
+        objectFit: 'contain',
       });
       return;
     }
@@ -1273,6 +1391,7 @@
       height: `${fittedHeight}px`,
       maxWidth: 'none',
       maxHeight: 'none',
+      objectFit: 'contain',
     });
   }
 
